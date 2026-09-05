@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+
+# Database SQLite + file tạm
+data/
+tmp/
+logs/
+
+# Environment — mỗi domain có .env riêng
+.env
+
+# QR code images + ảnh upload
+public/qr_*.png
+public/uploads/
+
+# Bản phát hành (git clone repo public) + thư mục nội bộ
+release/
+.agents/
+backups/
+
+# release
+.ssh/
+DEPLOY.md

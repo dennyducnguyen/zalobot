@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cài đặt & API — Zalo Inbox</title>
+<link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<div class="app page-scroll">
+    <div class="topbar">
+        <div class="brand">💬 <span id="brandName">Zalo Inbox</span></div>
+        <div class="spacer"></div>
+        <a href="/">← Về Inbox</a>
+        <a href="/ai.html">🤖 Trợ lý AI</a>
+        <button class="navlink" id="btnLogout">Đăng xuất</button>
+    </div>
+
+    <div class="settings-wrap">
+        <!-- Kênh Zalo -->
+        <div class="card">
+            <h2>📱 Kênh Zalo</h2>
+            <div id="zaloInfo">Đang tải...</div>
+        </div>
+
+        <div class="card" id="mcpSettings">
+            <h2>🤖 Kết nối AI / MCP</h2>
+            <p class="hint">Lấy danh sách và gửi text từng người hoặc nhóm từ công cụ AI. Việc hẹn giờ và lặp qua danh sách do công cụ AI thực hiện.</p>
+            <div class="form-row"><input id="mcpUrl" readonly aria-label="Link MCP"><button class="btn btn-primary" id="btnCopyMcp">Sao chép link MCP</button></div>
+            <p class="hint">Trong ChatGPT hoặc Claude, thêm kết nối MCP từ xa, dán link và chọn OAuth nếu được hỏi. Đăng nhập bằng tài khoản web Zalo Inbox rồi cấp quyền. Hệ thống hỗ trợ đăng ký OAuth tự động (DCR); không nhập mật khẩu vào link hay cuộc trò chuyện AI. Giao diện và khả năng thêm MCP phụ thuộc tài khoản ứng dụng AI.</p>
+            <p class="hint">Danh sách dùng dữ liệu đã lưu. Bấm “Đồng bộ danh bạ” ở phần Kênh Zalo để làm mới. “Đã chat” chỉ gồm hội thoại có tin được hệ thống ghi nhận.</p>
+            <h3>Các kết nối của bạn</h3>
+            <div style="overflow-x:auto"><table id="mcpConnections"><thead><tr><th>Ứng dụng / nơi nhận quyền</th><th>Quyền</th><th>Dùng lần cuối</th><th>Trạng thái</th><th></th></tr></thead><tbody><tr><td colspan="5">Đang tải...</td></tr></tbody></table></div>
+            <h3>Gửi gần đây qua MCP</h3>
+            <button class="btn btn-light btn-sm" id="btnRefreshMcp">Làm mới</button>
+            <div style="overflow-x:auto"><table id="mcpActivity"><thead><tr><th>Thời gian / ứng dụng</th><th>Người nhận (ID)</th><th>Mã yêu cầu</th><th>Kết quả</th></tr></thead><tbody></tbody></table></div>
+        </div>
+
+        <!-- API Keys -->
+        <div class="card">
+            <h2>🔑 API Keys</h2>
+            <p class="hint">Dùng key này để gọi REST API từ hệ thống bên ngoài (header <code>X-API-Key</code>).</p>
+            <table id="keysTable">
+                <thead><tr><th>Tên</th><th>Key</th><th>Trạng thái</th><th>Dùng lần cuối</th><th></th></tr></thead>
+                <tbody></tbody>
+            </table>
+            <div class="form-row">
+                <input type="text" id="newKeyName" placeholder="Tên key (vd: Hệ thống CRM)">
+                <button class="btn btn-primary" id="btnCreateKey">+ Tạo API Key</button>
+            </div>
+        </div>
+
+        <!-- API Docs -->
+        <div class="card">
+            <h2>📖 Danh sách API</h2>
+            <p class="hint">Base URL: <code class="mono" id="baseUrl"></code> — Auth: header <code>X-API-Key: &lt;key&gt;</code></p>
+            <div id="apiDocs"></div>
+        </div>
+
+        <!-- Users -->
+        <div class="card">
+            <h2>👤 Tài khoản đăng nhập web</h2>
+            <table id="usersTable">
+                <thead><tr><th>Username</th><th>Tên hiển thị</th><th>Vai trò</th><th></th></tr></thead>
+                <tbody></tbody>
+            </table>
+            <div class="form-row">
+                <input type="text" id="newUsername" placeholder="Username mới">
+                <input type="password" id="newUserPass" placeholder="Mật khẩu">
+                <input type="text" id="newUserDisplay" placeholder="Tên hiển thị">
+                <button class="btn btn-primary" id="btnCreateUser">+ Thêm user</button>
+            </div>
+            <div class="form-row">
+                <input type="password" id="myNewPass" placeholder="Đổi mật khẩu của tôi...">
+                <button class="btn btn-light" id="btnChangeMyPass">Đổi mật khẩu</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="toast"></div>
+<script src="/js/settings.js"></script>
+</body>
+</html>

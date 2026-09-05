@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zalo Inbox</title>
+<link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<div class="app" id="app">
+    <!-- Topbar -->
+    <div class="topbar">
+        <div class="brand">💬 <span id="brandName">Zalo Inbox</span></div>
+        <div class="channel-chip" id="channelChip" style="display:none">
+            <img id="channelAvatar" src="" alt="">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="channelName"></span>
+        </div>
+        <div class="spacer"></div>
+        <button class="navlink" id="btnSync" title="Import lại bạn bè + nhóm">📇 Đồng bộ danh bạ</button>
+        <a href="/ai.html" id="navAi">🤖 Trợ lý AI</a>
+        <a href="/settings.html">⚙️ Cài đặt & API</a>
+        <button class="navlink" id="btnLogout">Đăng xuất</button>
+    </div>
+
+    <!-- Banner khi kênh chưa kết nối -->
+    <div class="banner-disconnected" id="bannerDisconnected" style="display:none">
+        <span>⚠️ Kênh Zalo chưa kết nối — tin nhắn không được nhận.</span>
+        <button class="btn btn-primary btn-sm" id="btnConnect">Quét QR kết nối</button>
+    </div>
+
+    <div class="main">
+        <!-- Sidebar: danh sách hội thoại -->
+        <div class="sidebar">
+            <div class="sidebar-search">
+                <input type="text" id="searchInput" placeholder="🔍 Tìm theo tên, ID, SĐT...">
+            </div>
+            <div class="filter-tabs">
+                <button class="active" data-type="">Tất cả</button>
+                <button data-type="user">👤 Cá nhân</button>
+                <button data-type="group">👥 Nhóm</button>
+            </div>
+            <div class="thread-list" id="threadList">
+                <div class="empty-note">Đang tải...</div>
+            </div>
+        </div>
+
+        <!-- Chat pane -->
+        <div class="chat" id="chatPane">
+            <div class="chat-placeholder" id="chatPlaceholder">
+                <div class="big">💬</div>
+                <div>Chọn một hội thoại để bắt đầu</div>
+            </div>
+
+            <div id="chatContent" style="display:none; flex:1; flex-direction:column; min-height:0;">
+                <div class="chat-header">
+                    <button class="icon-btn back-btn" id="btnBack">←</button>
+                    <div class="avatar" id="chatAvatar"></div>
+                    <div style="flex:1; min-width:0">
+                        <div class="chat-title" id="chatTitle"></div>
+                        <div class="chat-sub">
+                            <span class="badge-type" id="chatTypeBadge"></span>
+                            <span id="chatThreadId"></span>
+                            <button class="copy-btn" id="btnCopyId" title="Copy ID">📋 copy</button>
+                        </div>
+                    </div>
+                    <button class="ai-chip" id="aiChip" style="display:none" title="Trạng thái Trợ lý AI cho hội thoại này">🤖 <span class="lbl" id="aiChipLabel">AI</span> ▾</button>
+                    <div class="ai-menu" id="aiMenu" style="display:none">
+                        <div class="hint" id="aiMenuInfo" style="padding:4px 10px 8px"></div>
+                        <button data-act="on">▶️ Bật AI cho hội thoại này</button>
+                        <button data-act="off">⏹️ Tắt AI cho hội thoại này</button>
+                        <button data-act="auto">↩️ Theo cấu hình chung</button>
+                        <div class="sep"></div>
+                        <button data-act="resume">⏯️ Tiếp tục ngay (bỏ tạm dừng / cần người)</button>
+                        <button data-act="reset">🔄 Làm mới hội thoại AI (/new)</button>
+                        <div class="sep"></div>
+                        <a href="/ai.html" style="display:block; padding:8px 10px; font-size:13px; text-decoration:none; color:var(--primary)">⚙️ Mở cài đặt Trợ lý AI</a>
+                    </div>
+                </div>
+                <div class="chat-body" id="chatBody"></div>
+                <div class="img-preview" id="imgPreview" style="display:none">
+                    <img id="imgPreviewEl" src="">
+                    <span>Ảnh đính kèm</span>
+                    <button class="btn btn-light btn-sm" id="btnRemoveImg">✕ Bỏ</button>
+                </div>
+                <div class="composer">
+                    <button class="icon-btn" id="btnAttach" title="Gửi ảnh">🖼️</button>
+                    <input type="file" id="fileInput" accept="image/*" style="display:none">
+                    <textarea id="msgInput" rows="1" placeholder="Nhập tin nhắn... (Enter gửi, Shift+Enter xuống dòng)"></textarea>
+                    <button class="btn btn-primary" id="btnSend">Gửi</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal QR -->
+<div class="modal-overlay" id="qrModal" style="display:none">
+    <div class="modal">
+        <h2>Kết nối kênh Zalo</h2>
+        <p style="color:var(--text-sub)">Mở app Zalo trên điện thoại → quét mã QR</p>
+        <div class="qr-wrap" id="qrWrap"><span>Đang tạo QR...</span></div>
+        <div class="qr-status" id="qrStatus">Đang khởi tạo...</div>
+        <div class="close-row"><button class="btn btn-light" id="btnCloseQr">Đóng</button></div>
+    </div>
+</div>
+
+<div id="toast"></div>
+<script src="/js/app.js"></script>
+</body>
+</html>

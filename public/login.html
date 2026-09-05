@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Đăng nhập — Zalo Inbox</title>
+<link rel="stylesheet" href="/css/app.css">
+</head>
+<body class="login-page">
+<div class="login-box">
+    <div class="login-logo">💬</div>
+    <h1 id="appName">Zalo Inbox</h1>
+    <p class="login-sub">Đăng nhập để trực tin nhắn</p>
+    <form id="loginForm">
+        <input type="text" id="username" placeholder="Tên đăng nhập" autocomplete="username" required>
+        <input type="password" id="password" placeholder="Mật khẩu" autocomplete="current-password" required>
+        <button type="submit" class="btn btn-primary btn-block" id="loginBtn">Đăng nhập</button>
+        <div class="login-error" id="loginError"></div>
+    </form>
+</div>
+<script>
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('loginBtn');
+    const errEl = document.getElementById('loginError');
+    btn.disabled = true; btn.textContent = 'Đang đăng nhập...'; errEl.textContent = '';
+    try {
+        const res = await fetch('/app/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                username: document.getElementById('username').value.trim(),
+                password: document.getElementById('password').value,
+            }),
+        });
+        const json = await res.json();
+        if (json.success) {
+            location.href = '/';
+        } else {
+            errEl.textContent = json.error?.message || 'Đăng nhập thất bại';
+        }
+    } catch (err) {
+        errEl.textContent = 'Lỗi kết nối server';
+    }
+    btn.disabled = false; btn.textContent = 'Đăng nhập';
+});
+</script>
+</body>
+</html>

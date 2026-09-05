@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trợ lý AI — Zalo Inbox</title>
+<link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<div class="app page-scroll">
+    <div class="topbar">
+        <div class="brand">🤖 <span id="brandName">Trợ lý AI</span></div>
+        <div class="spacer"></div>
+        <a href="/">← Về Inbox</a>
+        <a href="/settings.html">⚙️ Cài đặt & API</a>
+        <button class="navlink" id="btnLogout">Đăng xuất</button>
+    </div>
+
+    <div class="settings-wrap">
+        <div class="card">
+            <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap">
+                <label class="switch big" title="Công tắc tổng: bật/tắt AI trả lời tự động trên toàn kênh">
+                    <input type="checkbox" id="masterSwitch"><span class="track"></span>
+                    <span style="font-weight:700; font-size:16px" id="masterLabel">AI trả lời tự động: ĐANG TẮT</span>
+                </label>
+                <span class="hint" id="masterHint" style="margin:0"></span>
+            </div>
+            <div id="warnings" style="margin-top:12px"></div>
+        </div>
+
+        <div class="card">
+            <div class="tabs" id="tabs">
+                <button data-tab="overview" class="active">Tổng quan</button>
+                <button data-tab="providers">Provider</button>
+                <button data-tab="instruction">Instruction & Thử nhanh</button>
+                <button data-tab="scope">Phạm vi trả lời</button>
+                <button data-tab="tools">Tools</button>
+                <button data-tab="advanced">Nâng cao</button>
+                <button data-tab="logs">Nhật ký</button>
+            </div>
+
+            <!-- ===== Tổng quan ===== -->
+            <div class="tab-pane active" id="tab-overview">
+                <div class="ai-grid" id="overviewCards"></div>
+                <h3 style="margin-top:18px; font-size:15px">Lượt AI gần đây</h3>
+                <div style="overflow-x:auto"><table id="recentLogs"><thead><tr><th>Thời gian</th><th>Hội thoại</th><th>Kết quả</th><th>Provider</th><th>Tokens</th><th>Trả lời</th></tr></thead><tbody></tbody></table></div>
+            </div>
+
+            <!-- ===== Provider ===== -->
+            <div class="tab-pane" id="tab-providers">
+                <p class="hint" style="margin-top:0">Provider là nơi cung cấp model AI. Thêm ít nhất 1 provider, rồi chọn vai trò bên dưới. API key và token được mã hóa trong DB, không hiển thị lại.</p>
+                <div style="overflow-x:auto"><table id="providerTable" class="provider-table"><thead><tr><th>Tên</th><th>Loại</th><th>Model chat</th><th>Model ảnh</th><th>Trạng thái</th><th></th></tr></thead><tbody></tbody></table></div>
+                <div class="form-row"><button class="btn btn-primary" id="btnAddProvider">+ Thêm provider</button></div>
+
+                <h3 style="margin-top:22px; font-size:15px">Vai trò</h3>
+                <div class="field-row">
+                    <div class="field"><label>Provider chat (chính)</label><select id="roleChat"></select><div class="hint">Trả lời tin nhắn khách.</div></div>
+                    <div class="field"><label>Provider dự phòng</label><select id="roleFallback"></select><div class="hint">Tự dùng khi provider chính lỗi / hết hạn đăng nhập.</div></div>
+                    <div class="field"><label>Provider tạo ảnh</label><select id="roleImage"></select><div class="hint">Dùng cho tool "Tạo ảnh" (Gemini có model ảnh hoặc ChatGPT).</div></div>
+                </div>
+                <div class="save-row"><button class="btn btn-primary" id="btnSaveRoles">Lưu vai trò</button></div>
+            </div>
+
+            <!-- ===== Instruction ===== -->
+            <div class="tab-pane" id="tab-instruction">
+                <div class="ai-grid" style="grid-template-columns: 1fr 1fr; align-items:start">
+                    <div>
+                        <div class="field-row">
+                            <div class="field"><label>Tên trợ lý</label><input type="text" id="f_assistant_name" maxlength="60"></div>
+                            <div class="field"><label>Ngôn ngữ mặc định</label>
+                                <select id="f_language"><option value="vi">Tiếng Việt</option><option value="en">English</option><option value="ja">日本語</option><option value="ko">한국어</option><option value="zh">中文</option></select></div>
+                        </div>
+                        <div class="field"><label>Instruction (system prompt)</label>
+                            <textarea id="f_instruction" placeholder="Ví dụ: Bạn là nhân viên tư vấn của cửa hàng ABC chuyên bán ... Giờ mở cửa 8h-21h. Chính sách đổi trả 7 ngày. Luôn xưng 'em', gọi khách là 'anh/chị'. Khi khách hỏi giá sản phẩm không có trong danh sách, xin số điện thoại để nhân viên gọi lại..."></textarea>
+                            <div class="hint"><span id="instructionCount">0</span> ký tự. Hệ thống tự thêm phần "thông tin hệ thống" (tên, ngôn ngữ, giới hạn độ dài, quy tắc văn bản thuần) phía sau instruction này.</div>
+                        </div>
+                        <div class="field"><label>Câu trả lời khi không biết / ngoài phạm vi</label><input type="text" id="f_unknown_answer" maxlength="500" placeholder="Bỏ trống = AI tự nói chưa có thông tin và đề nghị nhân viên hỗ trợ"></div>
+                        <div class="field-row">
+                            <div class="field"><label>Độ dài tối đa mỗi tin (ký tự)</label><input type="number" id="f_reply_max_chars" min="200" max="2000"><div class="hint">Tin dài hơn sẽ tự tách thành nhiều tin.</div></div>
+                            <div class="field" style="padding-top:26px"><label class="switch"><input type="checkbox" id="f_disclose_ai"><span class="track"></span><span>Thừa nhận là AI khi khách hỏi</span></label></div>
+                        </div>
+                        <div class="save-row"><button class="btn btn-primary" id="btnSaveInstruction">Lưu instruction</button></div>
+                    </div>
+                    <div>
+                        <label style="font-weight:600; font-size:13px; display:block; margin-bottom:6px">Thử nhanh (không gửi lên Zalo — dùng đúng provider, instruction, tools đang cấu hình)</label>
+                        <div class="test-chat">
+                            <div class="log" id="testLog"><div class="bubble meta">Nhập câu hỏi như khách hàng để xem AI trả lời. Có thể đính kèm ảnh.</div></div>
+                            <div class="img-preview" id="testImgPreview" style="display:none"><img id="testImgPreviewEl" src=""><span>Ảnh đính kèm</span><button class="btn btn-light btn-sm" id="btnTestRemoveImg">✕ Bỏ</button></div>
+                            <div class="composer">
+                                <button class="icon-btn" id="btnTestAttach" title="Gửi ảnh">🖼️</button>
+                                <input type="file" id="testFile" accept="image/*" style="display:none">
+                                <textarea id="testInput" rows="2" placeholder="Nhập câu hỏi thử... (Enter gửi)"></textarea>
+                                <button class="btn btn-primary" id="btnTestSend">Gửi</button>
+                            </div>
+                        </div>
+                        <div class="form-row"><button class="btn btn-light btn-sm" id="btnTestClear">Xóa hội thoại thử</button><span class="hint" style="margin:0" id="testMeta"></span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== Phạm vi ===== -->
+            <div class="tab-pane" id="tab-scope">
+                <div class="ai-grid">
+                    <div>
+                        <h3 style="font-size:15px">👤 Chat cá nhân</h3>
+                        <div class="radio-list" id="dmModes">
+                            <label><input type="radio" name="dm_mode" value="all"><span>Trả lời tất cả</span></label>
+                            <label><input type="radio" name="dm_mode" value="non_contacts"><span>Chỉ người <b>chưa có</b> trong danh bạ<div class="hint">Khách lạ nhắn tới → AI tiếp; bạn bè thì để bạn tự trả lời.</div></span></label>
+                            <label><input type="radio" name="dm_mode" value="contacts"><span>Chỉ người <b>đã có</b> trong danh bạ</span></label>
+                            <label><input type="radio" name="dm_mode" value="off"><span>Tắt cho chat cá nhân</span></label>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 style="font-size:15px">👥 Nhóm</h3>
+                        <div class="radio-list">
+                            <label><input type="radio" name="group_mode" value="mention"><span>Chỉ khi được <b>tag</b> hoặc <b>reply</b> vào tin của bot<div class="hint">Khuyên dùng. Tránh bot nói chen trong nhóm.</div></span></label>
+                            <label><input type="radio" name="group_mode" value="all"><span>Trả lời <b>mọi tin nhắn</b> trong nhóm</span></label>
+                            <label><input type="radio" name="group_mode" value="off"><span>Tắt cho nhóm</span></label>
+                        </div>
+                        <label class="switch" style="margin-top:8px"><input type="checkbox" id="f_group_quote_reply"><span class="track"></span><span>Quote tin hỏi + tag tên người hỏi khi trả lời trong nhóm</span></label>
+                        <div class="field"><label>Danh sách nhóm được phép <span class="hint" style="display:inline; margin:0">(không chọn = mọi nhóm)</span></label>
+                            <input type="text" id="wlSearch" placeholder="🔍 Tìm nhóm theo tên / ID" style="margin-bottom:6px">
+                            <div class="wl-list" id="wlList">Đang tải...</div>
+                            <div class="hint">Đã chọn: <b id="wlCount">0</b> nhóm. Chưa thấy nhóm? Bấm "Đồng bộ danh bạ" ở trang Inbox.</div>
+                        </div>
+                    </div>
+                </div>
+                <h3 style="font-size:15px; margin-top:18px">🕒 Khung giờ hoạt động</h3>
+                <label class="switch"><input type="checkbox" id="f_hours_enabled"><span class="track"></span><span>Chỉ trả lời trong khung giờ (giờ Việt Nam)</span></label>
+                <div class="field-row" id="hoursRow">
+                    <div class="field"><label>Từ</label><input type="text" id="f_hours_from" placeholder="18:00" maxlength="5"></div>
+                    <div class="field"><label>Đến</label><input type="text" id="f_hours_to" placeholder="08:00" maxlength="5"><div class="hint">Qua đêm được (18:00 → 08:00).</div></div>
+                    <div class="field"><label>Ngày trong tuần</label><div id="hoursDays" style="display:flex; gap:8px; flex-wrap:wrap; padding-top:6px"></div></div>
+                </div>
+                <h3 style="font-size:15px; margin-top:18px">💬 Câu trả lời cố định</h3>
+                <div class="field-row">
+                    <div class="field"><label>Khi khách gõ /new</label><input type="text" id="f_new_session_reply" maxlength="500"><div class="hint">Bỏ trống = làm mới im lặng.</div></div>
+                    <div class="field"><label>Khi khách gửi sticker / file / voice</label><input type="text" id="f_non_text_reply" maxlength="1000" placeholder="Bỏ trống = bỏ qua im lặng"><div class="hint">Tối đa 1 lần / 10 phút / hội thoại.</div></div>
+                    <div class="field"><label>Khi AI lỗi (mọi provider đều thất bại)</label><input type="text" id="f_error_reply" maxlength="1000" placeholder="Bỏ trống = im lặng, chỉ ghi nhật ký"></div>
+                </div>
+                <div class="save-row"><button class="btn btn-primary" id="btnSaveScope">Lưu phạm vi</button></div>
+            </div>
+
+            <!-- ===== Tools ===== -->
+            <div class="tab-pane" id="tab-tools">
+                <p class="hint" style="margin-top:0">Tool là hành động AI có thể tự gọi trong lúc trả lời. Tắt tool nào thì AI không thấy tool đó.</p>
+                <div id="toolList"></div>
+                <div class="save-row"><button class="btn btn-primary" id="btnSaveTools">Lưu tools</button></div>
+            </div>
+
+            <!-- ===== Nâng cao ===== -->
+            <div class="tab-pane" id="tab-advanced">
+                <div class="field-row">
+                    <div class="field"><label>Gom tin liên tiếp (ms)</label><input type="number" id="f_debounce_ms" min="0" max="30000" step="500"><div class="hint">Khách gửi nhiều tin trong khoảng này → 1 câu trả lời.</div></div>
+                    <div class="field"><label>Tạm dừng khi người thật trả lời (phút)</label><input type="number" id="f_human_pause_minutes" min="0" max="1440"><div class="hint">Bạn trả lời từ web/app → AI im trong thread đó. 0 = không tạm dừng.</div></div>
+                    <div class="field"><label>Cooldown giữa 2 lượt (giây)</label><input type="number" id="f_cooldown_seconds" min="0" max="3600"></div>
+                    <div class="field"><label>Giới hạn lượt/ngày/hội thoại</label><input type="number" id="f_daily_limit_per_thread" min="0" max="100000"><div class="hint">0 = không giới hạn.</div></div>
+                    <div class="field"><label>Số lượt AI chạy song song</label><input type="number" id="f_global_concurrency" min="1" max="20"></div>
+                    <div class="field"><label>Số tin lịch sử đưa vào ngữ cảnh</label><input type="number" id="f_history_limit" min="0" max="100"></div>
+                    <div class="field"><label>Lịch sử tối đa (giờ)</label><input type="number" id="f_history_max_age_hours" min="0" max="720"><div class="hint">Quá thời gian này coi như hội thoại mới.</div></div>
+                    <div class="field"><label>Số ảnh gần nhất đưa vào ngữ cảnh</label><input type="number" id="f_image_history_limit" min="0" max="10"></div>
+                    <div class="field"><label>Max tokens mỗi câu trả lời</label><input type="number" id="f_max_tokens" min="100" max="32000"></div>
+                    <div class="field"><label>Temperature</label><input type="number" id="f_temperature" min="0" max="2" step="0.1"></div>
+                    <div class="field"><label>Reasoning effort (ChatGPT / gpt-5)</label><select id="f_reasoning_effort"><option value="none">none</option><option value="low">low (nhanh)</option><option value="medium">medium</option><option value="high">high (chậm)</option></select></div>
+                    <div class="field"><label>Vòng tool tối đa mỗi lượt</label><input type="number" id="f_max_tool_rounds" min="0" max="10"></div>
+                    <div class="field"><label>Timeout 1 lượt (ms)</label><input type="number" id="f_turn_timeout_ms" min="5000" max="600000" step="1000"></div>
+                    <div class="field"><label>Timeout tạo ảnh (ms)</label><input type="number" id="f_image_timeout_ms" min="5000" max="600000" step="1000"></div>
+                    <div class="field"><label>Độ trễ giống người: từ (ms)</label><input type="number" id="f_delay_min" min="0" max="60000" step="100"></div>
+                    <div class="field"><label>Độ trễ giống người: đến (ms)</label><input type="number" id="f_delay_max" min="0" max="60000" step="100"><div class="hint">0 và 0 = trả lời ngay.</div></div>
+                </div>
+                <label class="switch" style="margin-top:14px"><input type="checkbox" id="f_vision_enabled"><span class="track"></span><span>Đọc ảnh khách gửi (vision)</span></label>
+                <div class="field"><label>Host ảnh được phép tải (phân cách bằng dấu phẩy)</label><input type="text" id="f_image_hosts"><div class="hint">Chỉ tải ảnh https từ các domain này (Zalo CDN). Chặn SSRF.</div></div>
+                <div class="save-row"><button class="btn btn-primary" id="btnSaveAdvanced">Lưu nâng cao</button></div>
+            </div>
+
+            <!-- ===== Nhật ký ===== -->
+            <div class="tab-pane" id="tab-logs">
+                <div class="form-row" style="margin-top:0">
+                    <input type="text" id="logThread" placeholder="Lọc theo thread_id">
+                    <select id="logStatus" style="padding:8px; border:1px solid var(--border); border-radius:6px"><option value="">Mọi trạng thái</option><option value="ok">ok</option><option value="fallback">fallback</option><option value="error">error</option><option value="skipped">skipped</option></select>
+                    <button class="btn btn-light" id="btnLogRefresh">Làm mới</button>
+                </div>
+                <div style="overflow-x:auto"><table id="logTable"><thead><tr><th>Thời gian</th><th>Hội thoại</th><th>Kết quả</th><th>Provider / model</th><th>Tokens</th><th>ms</th><th>Tools</th><th>Trả lời / lỗi</th></tr></thead><tbody></tbody></table></div>
+                <div class="form-row"><button class="btn btn-light btn-sm" id="btnLogMore">Tải thêm</button></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal thêm provider -->
+<div class="modal-overlay" id="providerModal" style="display:none">
+    <div class="modal wide">
+        <h2 id="pmTitle">Thêm provider</h2>
+        <div class="field"><label>Loại</label><select id="pmKind">
+            <option value="gemini">Gemini (API key) — khuyên dùng</option>
+            <option value="openai">OpenAI (API key)</option>
+            <option value="openai_compat">OpenAI-compatible (OpenRouter, DeepSeek, Groq...)</option>
+            <option value="chatgpt">ChatGPT subscription (đăng nhập tài khoản Plus/Pro)</option>
+        </select></div>
+        <div class="field"><label>Tên gợi nhớ</label><input type="text" id="pmName" maxlength="60" placeholder="vd: gemini-chinh"></div>
+        <div class="field" id="pmBaseWrap" style="display:none"><label>Base URL</label><input type="url" id="pmBase" placeholder="https://openrouter.ai/api/v1"></div>
+        <div class="field" id="pmKeyWrap"><label>API key</label>
+            <div style="display:flex; gap:8px"><input type="password" id="pmKey" placeholder="Dán API key..." style="flex:1"><button class="btn btn-light" id="pmCheck">Kiểm tra key & tải model</button></div>
+            <div class="hint" id="pmKeyHint"></div>
+        </div>
+        <div id="pmChatgptNote" class="warn-box" style="display:none">
+            <b>Lưu ý:</b> ChatGPT subscription dùng cơ chế đăng nhập của Codex CLI (không phải API chính thức). OpenAI có thể khóa tài khoản hoặc đổi cơ chế bất kỳ lúc nào. Nên cấu hình thêm provider dự phòng (Gemini). Sau khi tạo, bấm "Đăng nhập ChatGPT" ở bảng provider.
+        </div>
+        <div class="field-row" id="pmModels" style="display:none">
+            <div class="field"><label>Model chat</label><select id="pmChatModel"></select></div>
+            <div class="field" id="pmImageWrap"><label>Model tạo ảnh (tùy chọn)</label><select id="pmImageModel"></select></div>
+        </div>
+        <div id="pmError" class="danger-box" style="display:none"></div>
+        <div class="close-row" style="display:flex; gap:8px; justify-content:flex-end; margin-top:14px">
+            <button class="btn btn-light" id="pmCancel">Đóng</button>
+            <button class="btn btn-primary" id="pmSave">Thêm provider</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal đăng nhập ChatGPT -->
+<div class="modal-overlay" id="loginModal" style="display:none">
+    <div class="modal wide">
+        <h2>Đăng nhập ChatGPT</h2>
+        <ol class="steps">
+            <li>Bấm <b>Mở trang đăng nhập</b> → đăng nhập tài khoản ChatGPT Plus/Pro và cho phép Codex.</li>
+            <li>Trình duyệt sẽ chuyển tới địa chỉ bắt đầu bằng <code>http://localhost:1455/auth/callback?code=...</code> và báo <b>không kết nối được</b> — điều này là bình thường.</li>
+            <li>Copy <b>toàn bộ URL</b> trên thanh địa chỉ của tab đó, dán vào ô dưới và bấm <b>Hoàn tất</b>.</li>
+        </ol>
+        <div class="form-row"><button class="btn btn-primary" id="lmOpen">Mở trang đăng nhập</button><span class="hint" id="lmStatus" style="margin:0"></span></div>
+        <div class="field"><label>URL callback (dán vào đây)</label><input type="text" id="lmUrl" placeholder="http://localhost:1455/auth/callback?code=...&state=..."></div>
+        <div id="lmError" class="danger-box" style="display:none"></div>
+        <div id="lmOk" class="ok-box" style="display:none"></div>
+        <div class="close-row" style="display:flex; gap:8px; justify-content:flex-end; margin-top:14px">
+            <button class="btn btn-light" id="lmCancel">Đóng</button>
+            <button class="btn btn-primary" id="lmComplete">Hoàn tất đăng nhập</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+<script src="/js/ai.js"></script>
+</body>
+</html>
