@@ -1,0 +1,6 @@
+# Luôn dùng LF trong repo và khi checkout — script .sh chạy trên Linux, tránh lỗi CRLF khi commit từ Windows
+* text=auto eol=lf
+*.sh text eol=lf
+*.png binary
+*.jpg binary
+*.ico binary
