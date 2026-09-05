@@ -1,6 +1,6 @@
 {
   "name": "zalo-inbox",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Zalo Inbox — quản lý 1 kênh Zalo cá nhân: web trực chat + REST API + MCP + Trợ lý AI (1 domain = 1 kênh)",
   "main": "src/server.js",
   "scripts": {

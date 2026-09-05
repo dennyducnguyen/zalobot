@@ -1,6 +1,6 @@
 # zalo-inbox — Notes cho AI agents (Codex, Claude...)
 
-Đây là **nguồn ghi chú duy nhất** của dự án; `CLAUDE.md` chỉ trỏ về đây. Cập nhật kiến thức mới vào file này.
+Đây là **điểm vào ghi chú chung** của dự án; `CLAUDE.md` chỉ trỏ về đây. File này giữ tóm tắt và quy tắc chung; kiến trúc, lịch sử lỗi và hướng dẫn bảo trì chi tiết cập nhật trong tài liệu từng hệ thống được dẫn bên dưới.
 
 Bộ source quản lý **1 kênh Zalo cá nhân / 1 domain** — web trực chat + REST API + MCP + Trợ lý AI. Kiến trúc: [README.md](README.md) · Setup VPS bất kỳ: [SETUP.md](SETUP.md) · API: [API.md](API.md) · MCP: [MCP.md](MCP.md) · Trợ lý AI: [docs/AI-ARCHITECTURE.md](docs/AI-ARCHITECTURE.md)
 
@@ -30,6 +30,7 @@ Bộ source quản lý **1 kênh Zalo cá nhân / 1 domain** — web trực chat
 - Gửi qua server (web UI / API / AI / MCP): lưu DB **ngay lúc gửi** (`_storeMessage`), msgId add vào `_sentMsgIds`
 - Listener nhận tin isSelf=true: nếu msgId ∈ `_sentMsgIds` → **bỏ qua** (đã lưu); ngược lại = gửi từ app Zalo → lưu với source `app`
 - Dedupe thêm bằng `messages.existsByMsgId()`
+- **Race echo (sửa 2026-09-05):** echo WebSocket của tin server gửi có thể tới TRƯỚC khi `sendMessage()` resolve (chưa kịp add `_sentMsgIds`) → listener chờ 1,5 s rồi kiểm tra lại với mọi tin `isSelf` chưa có trong `_sentMsgIds`. Không bỏ bước chờ này: nếu bỏ, tin AI/API bị lưu trùng thành `app` và Trợ lý AI tự tạm dừng sau chính câu trả lời của mình.
 - `messages.source` hiện có: `zalo` (khách), `app` (chủ kênh gửi từ điện thoại), `web`, `api`, `mcp`, `ai`
 
 ## Trợ lý AI (`src/services/ai/`) — tóm tắt

@@ -548,7 +548,13 @@ class ZaloChannel extends EventEmitter {
             try {
                 const msgId = String(message.data?.msgId || '');
 
-                // Tin gửi qua server (web/api) — đã lưu DB lúc gửi → bỏ qua
+                // Echo tin do chính server gửi (web/api/mcp/ai) có thể tới qua WebSocket TRƯỚC khi sendMessage() resolve
+                // (tức trước khi msgId được add vào _sentMsgIds) → chờ ngắn rồi kiểm tra lại, tránh lưu trùng
+                // và tránh Trợ lý AI hiểu nhầm là "chủ kênh trả lời từ app" rồi tự tạm dừng.
+                if (message.isSelf && msgId && !this._sentMsgIds.has(msgId)) {
+                    await new Promise(r => setTimeout(r, 1500));
+                }
+                // Tin gửi qua server — đã lưu DB lúc gửi → bỏ qua
                 if (message.isSelf && msgId && this._sentMsgIds.has(msgId)) {
                     this._sentMsgIds.delete(msgId);
                     return;

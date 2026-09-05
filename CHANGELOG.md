@@ -2,6 +2,13 @@
 
 Mọi thay đổi đáng chú ý của Zalo Inbox. Phiên bản theo [SemVer](https://semver.org/lang/vi/): **MAJOR** đổi cách cài/cấu hình, **MINOR** thêm tính năng, **PATCH** sửa lỗi. Cập nhật bằng `bash update.sh`.
 
+## [1.2.1] — 2026-09-05
+
+### Sửa lỗi
+- Listener Zalo: echo của tin do server gửi (AI/API/web/MCP) có thể về qua WebSocket trước khi lệnh gửi resolve → bị lưu trùng thành tin "gửi từ app" và làm Trợ lý AI tự tạm dừng 30 phút sau chính câu trả lời của mình. Nay chờ 1,5 giây rồi kiểm tra lại trước khi lưu.
+- Đăng nhập ChatGPT: phiên OAuth lưu mã hóa trong DB nên không mất khi server restart; giao diện không còn treo nút khi gặp lỗi HTTP.
+- Trang Cài đặt và Trợ lý AI cuộn bằng thanh cuộn trình duyệt.
+
 ## [1.2.0] — 2026-09-05
 
 ### Thêm
